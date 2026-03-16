@@ -7,6 +7,38 @@ import IncomeExpenseBar from "@/components/charts/IncomeExpenseBar"
 import SpendingDonut from "@/components/charts/SpendingDonut"
 import { formatCurrency } from "@/lib/utils"
 
+interface PrismaTransaction {
+  id: string
+  type: string
+  amount: unknown
+  description: string
+  merchant: string | null
+  date: Date
+  notes: string | null
+  isAiCategorised: boolean
+  categoryId: string | null
+  userId: string
+  createdAt: Date
+  updatedAt: Date
+  category: {
+    id: string
+    name: string
+    color: string
+  } | null
+}
+
+interface MonthlyTx {
+  type: string
+  amount: unknown
+}
+
+interface CategoryEntry {
+  categoryId: string
+  categoryName: string
+  color: string
+  total: number
+}
+
 async function getSummary(userId: string) {
   const now = new Date()
   const month = now.getMonth() + 1
@@ -22,48 +54,40 @@ async function getSummary(userId: string) {
   })
 
   const totalIncome = transactions
-    .filter((t) => t.type === "INCOME")
-    .reduce((s, t) => s + Number(t.amount), 0)
+    .filter((t: PrismaTransaction) => t.type === "INCOME")
+    .reduce((s: number, t: PrismaTransaction) => s + Number(t.amount), 0)
 
   const totalExpenses = transactions
-    .filter((t) => t.type === "EXPENSE")
-    .reduce((s, t) => s + Number(t.amount), 0)
+    .filter((t: PrismaTransaction) => t.type === "EXPENSE")
+    .reduce((s: number, t: PrismaTransaction) => s + Number(t.amount), 0)
 
   const netSavings = totalIncome - totalExpenses
-  const savingsRate = totalIncome > 0
-    ? Math.round((netSavings / totalIncome) * 100)
-    : 0
+  const savingsRate =
+    totalIncome > 0 ? Math.round((netSavings / totalIncome) * 100) : 0
 
-  const categoryMap = new Map<string, {
-    categoryId: string
-    categoryName: string
-    color: string
-    total: number
-  }>()
+  const categoryMap: Record<string, CategoryEntry> = {}
 
   transactions
-    .filter((t) => t.type === "EXPENSE" && t.category)
-    .forEach((t) => {
+    .filter((t: PrismaTransaction) => t.type === "EXPENSE" && t.category)
+    .forEach((t: PrismaTransaction) => {
       const key = t.categoryId ?? "uncategorised"
-      const existing = categoryMap.get(key)
-      if (existing) {
-        existing.total += Number(t.amount)
+      if (categoryMap[key]) {
+        categoryMap[key].total += Number(t.amount)
       } else {
-        categoryMap.set(key, {
+        categoryMap[key] = {
           categoryId: key,
           categoryName: t.category?.name ?? "Uncategorised",
           color: t.category?.color ?? "#94a3b8",
           total: Number(t.amount),
-        })
+        }
       }
     })
 
-  const categoryBreakdown = Array.from(categoryMap.values())
-    .map((c) => ({
+  const categoryBreakdown = Object.values(categoryMap)
+    .map((c: CategoryEntry) => ({
       ...c,
-      percentage: totalExpenses > 0
-        ? Math.round((c.total / totalExpenses) * 100)
-        : 0,
+      percentage:
+        totalExpenses > 0 ? Math.round((c.total / totalExpenses) * 100) : 0,
     }))
     .sort((a, b) => b.total - a.total)
 
@@ -72,7 +96,7 @@ async function getSummary(userId: string) {
     const d = new Date(year, month - 1 - i, 1)
     const m = d.getMonth() + 1
     const y = d.getFullYear()
-    const monthTx = await prisma.transaction.findMany({
+    const monthTx: MonthlyTx[] = await prisma.transaction.findMany({
       where: {
         userId,
         date: {
@@ -85,8 +109,12 @@ async function getSummary(userId: string) {
     last6Months.push({
       month: m,
       year: y,
-      income: monthTx.filter((t) => t.type === "INCOME").reduce((s, t) => s + Number(t.amount), 0),
-      expenses: monthTx.filter((t) => t.type === "EXPENSE").reduce((s, t) => s + Number(t.amount), 0),
+      income: monthTx
+        .filter((t: MonthlyTx) => t.type === "INCOME")
+        .reduce((s: number, t: MonthlyTx) => s + Number(t.amount), 0),
+      expenses: monthTx
+        .filter((t: MonthlyTx) => t.type === "EXPENSE")
+        .reduce((s: number, t: MonthlyTx) => s + Number(t.amount), 0),
     })
   }
 
@@ -118,7 +146,6 @@ export default async function DashboardPage() {
         subtitle={`${monthName} ${year}`}
       />
 
-      {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <MetricCard
           label="Total income"
@@ -151,8 +178,8 @@ export default async function DashboardPage() {
           deltaType={summary.netSavings >= 0 ? "positive" : "negative"}
           icon={
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" />
-              <path d="M12 6v6l4 2" />
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
             </svg>
           }
         />
@@ -170,7 +197,6 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
         <div className="lg:col-span-2 bg-[#1e293b] border border-[#1e3a5f] rounded-xl p-5">
           <h2 className="text-sm font-medium text-slate-400 mb-4">
@@ -187,7 +213,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent transactions */}
       <div className="bg-[#1e293b] border border-[#1e3a5f] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-medium text-slate-400">
@@ -195,10 +220,13 @@ export default async function DashboardPage() {
           </h2>
         </div>
         <RecentTransactions
-          transactions={summary.recentTransactions.map((t) => ({
-            ...t,
-            amount: Number(t.amount),
-          }))}
+          transactions={summary.recentTransactions.map(
+            (t: PrismaTransaction) => ({
+              ...t,
+              amount: Number(t.amount),
+              date: t.date.toISOString(),
+            })
+          )}
         />
       </div>
     </div>

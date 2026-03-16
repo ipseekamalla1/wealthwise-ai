@@ -1,45 +1,81 @@
-import { cn } from "@/lib/utils"
+"use client"
 
-interface MetricCardProps {
-  label: string
-  value: string
-  delta?: string
-  deltaType?: "positive" | "negative" | "neutral"
-  icon?: React.ReactNode
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts"
+
+interface MonthData {
+  month: number
+  year: number
+  income: number
+  expenses: number
 }
 
-export default function MetricCard({
-  label,
-  value,
-  delta,
-  deltaType = "neutral",
-  icon,
-}: MetricCardProps) {
+interface IncomeExpenseBarProps {
+  data: MonthData[]
+}
+
+const MONTH_NAMES = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+]
+
+export default function IncomeExpenseBar({ data }: IncomeExpenseBarProps) {
+  const formatted = data.map((d) => ({
+    name: MONTH_NAMES[d.month - 1],
+    Income: d.income,
+    Expenses: d.expenses,
+  }))
+
   return (
-    <div className="bg-[#1e293b] border border-[#1e3a5f] rounded-xl p-5">
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-          {label}
-        </span>
-        {icon && (
-          <span className="text-slate-600">{icon}</span>
-        )}
-      </div>
-      <div className="text-2xl font-semibold text-slate-100 tracking-tight mb-1">
-        {value}
-      </div>
-      {delta && (
-        <div
-          className={cn(
-            "text-xs font-medium",
-            deltaType === "positive" && "text-green-400",
-            deltaType === "negative" && "text-red-400",
-            deltaType === "neutral" && "text-slate-500"
-          )}
-        >
-          {delta}
-        </div>
-      )}
-    </div>
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={formatted} barGap={4} barCategoryGap="30%">
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="#1e3a5f"
+          vertical={false}
+        />
+        <XAxis
+          dataKey="name"
+          tick={{ fill: "#64748b", fontSize: 12 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fill: "#64748b", fontSize: 12 }}
+          axisLine={false}
+          tickLine={false}
+          tickFormatter={(v: number) =>
+            v >= 1000 ? `$${(v / 1000).toFixed(1)}k` : `$${v}`
+          }
+        />
+       <Tooltip
+            contentStyle={{
+              background: "#1e293b",
+              border: "1px solid #1e3a5f",
+              borderRadius: "8px",
+              color: "#f1f5f9",
+              fontSize: "13px",
+            }}
+            formatter={(value) => [`$${Number(value).toLocaleString()}`, ""]}
+          />
+        <Legend
+          wrapperStyle={{
+            fontSize: "12px",
+            color: "#64748b",
+            paddingTop: "12px",
+          }}
+        />
+        <Bar dataKey="Income" fill="#22c55e" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
   )
 }

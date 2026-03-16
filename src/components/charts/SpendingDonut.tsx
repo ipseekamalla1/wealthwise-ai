@@ -16,11 +16,45 @@ interface CategoryData {
   percentage: number
 }
 
-interface Props {
+interface SpendingDonutProps {
   data: CategoryData[]
 }
 
-export default function SpendingDonut({ data }: Props) {
+interface TooltipPayloadItem {
+  value: number
+  payload: CategoryData
+}
+
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean
+  payload?: TooltipPayloadItem[]
+}) => {
+  if (!active || !payload || payload.length === 0) return null
+  const item = payload[0]
+  return (
+    <div
+      style={{
+        background: "#1e293b",
+        border: "1px solid #1e3a5f",
+        borderRadius: "8px",
+        padding: "8px 12px",
+        fontSize: "12px",
+      }}
+    >
+      <p style={{ color: "#e2e8f0", fontWeight: 500 }}>
+        {item.payload.categoryName}
+      </p>
+      <p style={{ color: "#94a3b8", marginTop: "2px" }}>
+        ${item.value.toLocaleString()} · {item.payload.percentage}%
+      </p>
+    </div>
+  )
+}
+
+export default function SpendingDonut({ data }: SpendingDonutProps) {
   if (!data || data.length === 0) {
     return (
       <div className="h-[240px] flex items-center justify-center text-sm text-slate-600">
@@ -46,28 +80,24 @@ export default function SpendingDonut({ data }: Props) {
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
-          <Tooltip
-            contentStyle={{
-              background: "#1e293b",
-              border: "1px solid #1e3a5f",
-              borderRadius: "8px",
-              color: "#f1f5f9",
-              fontSize: "13px",
-            }}
-            formatter={(value: number) => [`$${value.toLocaleString()}`, ""]}
-          />
+          <Tooltip content={<CustomTooltip />} />
         </PieChart>
       </ResponsiveContainer>
 
       <div className="space-y-2">
         {data.slice(0, 5).map((item) => (
-          <div key={item.categoryId} className="flex items-center justify-between">
+          <div
+            key={item.categoryId}
+            className="flex items-center justify-between"
+          >
             <div className="flex items-center gap-2">
               <div
                 className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
                 style={{ background: item.color }}
               />
-              <span className="text-xs text-slate-400">{item.categoryName}</span>
+              <span className="text-xs text-slate-400">
+                {item.categoryName}
+              </span>
             </div>
             <span className="text-xs font-medium text-slate-300">
               {item.percentage}%
