@@ -1,4 +1,4 @@
-'use client' 
+
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import TopBar from "@/components/layout/TopBar"
@@ -7,8 +7,7 @@ import RecentTransactions from "@/components/dashboard/RecentTransactions"
 import IncomeExpenseBar from "@/components/charts/IncomeExpenseBar"
 import SpendingDonut from "@/components/charts/SpendingDonut"
 import { formatCurrency } from "@/lib/utils"
-import InsightCard from "@/components/dashboard/InsightCard"
-import { useState, useEffect } from "react"
+
 import InsightsSection from "@/components/dashboard/InsightsSection"
 
 
