@@ -99,6 +99,18 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    if (!parsed.data.categoryId) {
+      fetch(`${process.env.NEXTAUTH_URL}/api/ai/categorise`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          transactionId: transaction.id,
+          description: transaction.description,
+          merchant: transaction.merchant,
+        }),
+      }).catch(console.error)
+    }
+
     return NextResponse.json({ data: transaction }, { status: 201 })
   } catch (error) {
     console.error("POST /api/transactions error:", error)

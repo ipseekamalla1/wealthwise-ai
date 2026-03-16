@@ -11,8 +11,12 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const month = parseInt(searchParams.get("month") ?? String(new Date().getMonth() + 1))
-    const year = parseInt(searchParams.get("year") ?? String(new Date().getFullYear()))
+    const month = parseInt(
+      searchParams.get("month") ?? String(new Date().getMonth() + 1)
+    )
+    const year = parseInt(
+      searchParams.get("year") ?? String(new Date().getFullYear())
+    )
 
     const budgets = await prisma.budget.findMany({
       where: { userId: session.user.id, month, year },
@@ -23,7 +27,29 @@ export async function GET(req: NextRequest) {
       },
     })
 
-    return NextResponse.json({ data: budgets })
+    const startDate = new Date(year, month - 1, 1)
+    const endDate = new Date(year, month, 0, 23, 59, 59)
+
+    const budgetsWithSpend = await Promise.all(
+      budgets.map(async (budget) => {
+        const result = await prisma.transaction.aggregate({
+          where: {
+            userId: session.user.id,
+            categoryId: budget.categoryId,
+            type: "EXPENSE",
+            date: { gte: startDate, lte: endDate },
+          },
+          _sum: { amount: true },
+        })
+
+        return {
+          ...budget,
+          currentSpend: Number(result._sum.amount ?? 0),
+        }
+      })
+    )
+
+    return NextResponse.json({ data: budgetsWithSpend })
   } catch (error) {
     console.error("GET /api/budgets error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

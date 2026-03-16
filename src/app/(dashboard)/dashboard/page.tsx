@@ -1,3 +1,4 @@
+'use client' 
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import TopBar from "@/components/layout/TopBar"
@@ -6,6 +7,10 @@ import RecentTransactions from "@/components/dashboard/RecentTransactions"
 import IncomeExpenseBar from "@/components/charts/IncomeExpenseBar"
 import SpendingDonut from "@/components/charts/SpendingDonut"
 import { formatCurrency } from "@/lib/utils"
+import InsightCard from "@/components/dashboard/InsightCard"
+import { useState, useEffect } from "react"
+import InsightsSection from "@/components/dashboard/InsightsSection"
+
 
 interface PrismaTransaction {
   id: string
@@ -228,6 +233,18 @@ export default async function DashboardPage() {
             })
           )}
         />
+        {/* AI Insights - loaded client side */}
+      <div className="mt-4 bg-[#1e293b] border border-[#1e3a5f] rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-medium text-slate-400">
+            AI insights
+          </h2>
+          <span className="text-xs text-indigo-400 px-2 py-1 bg-indigo-500/10 rounded-md">
+            Powered by GPT
+          </span>
+        </div>
+        <InsightsSection />
+      </div>
       </div>
     </div>
   )
