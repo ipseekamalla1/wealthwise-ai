@@ -3,21 +3,24 @@ import { NextResponse } from "next/server"
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth
-  const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard") ||
-    req.nextUrl.pathname.startsWith("/transactions") ||
-    req.nextUrl.pathname.startsWith("/budgets") ||
-    req.nextUrl.pathname.startsWith("/chat") ||
-    req.nextUrl.pathname.startsWith("/reports") ||
-    req.nextUrl.pathname.startsWith("/analytics")
+  const { pathname } = req.nextUrl
 
-  if (isOnDashboard && !isLoggedIn) {
+  const isProtected =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/transactions") ||
+    pathname.startsWith("/budgets") ||
+    pathname.startsWith("/chat") ||
+    pathname.startsWith("/reports") ||
+    pathname.startsWith("/analytics")
+
+  const isAuthPage =
+    pathname === "/login" || pathname === "/register"
+
+  if (isProtected && !isLoggedIn) {
     return NextResponse.redirect(new URL("/login", req.nextUrl))
   }
 
-  if (isLoggedIn && (
-    req.nextUrl.pathname === "/login" ||
-    req.nextUrl.pathname === "/register"
-  )) {
+  if (isLoggedIn && isAuthPage) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
   }
 
