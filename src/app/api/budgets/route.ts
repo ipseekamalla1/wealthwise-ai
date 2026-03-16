@@ -3,6 +3,22 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { BudgetSchema } from "@/lib/validations"
 
+interface BudgetItem {
+  id: string
+  categoryId: string
+  monthlyLimit: unknown
+  currentSpend: unknown
+  month: number
+  year: number
+  userId: string
+  category: {
+    id: string
+    name: string
+    color: string
+    icon: string
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth()
@@ -18,7 +34,7 @@ export async function GET(req: NextRequest) {
       searchParams.get("year") ?? String(new Date().getFullYear())
     )
 
-    const budgets = await prisma.budget.findMany({
+    const budgets: BudgetItem[] = await prisma.budget.findMany({
       where: { userId: session.user.id, month, year },
       include: {
         category: {
@@ -31,7 +47,7 @@ export async function GET(req: NextRequest) {
     const endDate = new Date(year, month, 0, 23, 59, 59)
 
     const budgetsWithSpend = await Promise.all(
-      budgets.map(async (budget) => {
+      budgets.map(async (budget: BudgetItem) => {
         const result = await prisma.transaction.aggregate({
           where: {
             userId: session.user.id,
@@ -52,7 +68,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ data: budgetsWithSpend })
   } catch (error) {
     console.error("GET /api/budgets error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
 }
 
@@ -102,6 +121,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ data: budget }, { status: 201 })
   } catch (error) {
     console.error("POST /api/budgets error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
 }
