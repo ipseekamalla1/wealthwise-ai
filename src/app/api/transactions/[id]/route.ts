@@ -68,8 +68,7 @@ export async function PATCH(
       where: { id },
       data: {
         ...parsed.data,
-        date: parsed.data.date ? new Date(parsed.data.date) : undefined,
-      },
+date: parsed.data.date ? new Date(`${parsed.data.date}T12:00:00.000Z`) : undefined,      },
       include: {
         category: {
           select: { id: true, name: true, color: true, icon: true },

@@ -321,9 +321,7 @@ export default function LandingPage() {
               animation: "pulse 2s infinite",
             }}
           />
-          <span style={{ fontSize: "12px", color: "#818cf8", fontWeight: 500 }}>
-            Powered by GPT-4o · Built with Next.js + Prisma
-          </span>
+          
         </div>
 
         {/* Headline */}
@@ -548,7 +546,7 @@ export default function LandingPage() {
                   {[
                     { name: "Housing", pct: 42, color: "#6366f1" },
                     { name: "Food", pct: 21, color: "#f59e0b" },
-                    { name: "Transport", pct: 14, color: "#3b82f6" },
+                    { name: "", pct: 14, color: "#3b82f6" },
                   ].map((c) => (
                     <div key={c.name}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>

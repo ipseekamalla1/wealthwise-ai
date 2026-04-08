@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
         description,
         merchant: merchant ?? null,
         categoryId: categoryId ?? null,
-        date: new Date(date),
+date: new Date(`${date}T12:00:00.000Z`),
         notes: notes ?? null,
         userId: session.user.id,
       },
