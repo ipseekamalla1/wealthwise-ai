@@ -2,6 +2,7 @@
   "name": "wealthwise-ai",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +10,7 @@
     "lint": "eslint"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed-april.ts"
+    "seed": "node --loader ts-node/esm --no-warnings prisma/seed-budget-mary.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
@@ -43,6 +44,6 @@
     "prisma": "^6.19.2",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }
